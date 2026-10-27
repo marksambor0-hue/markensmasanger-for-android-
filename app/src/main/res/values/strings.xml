@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">MARKENS</string>
+    <string name="auth_subtitle">Голосовой и игровой мессенджер MARKENS</string>
+    <string name="sign_in_google">Войти через Google</string>
+    <string name="tab_channels">Каналы</string>
+    <string name="tab_github_sync">GitHub Хаб</string>
+    <string name="tab_exe_bridge">Мост .EXE</string>
+    <string name="new_channel">Новый канал</string>
+    <string name="send_message_hint">Написать сообщение или пакет...</string>
+    <string name="code_snippet_hint">Вставьте код сниппета...</string>
+    <string name="sync_github_commits">Импорт коммитов из GitHub</string>
+    <string name="simulate_exe_packet">Принять пакет из Desktop .EXE</string>
+    <string name="sign_out">Выйти</string>
+</resources>

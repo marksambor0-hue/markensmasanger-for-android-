@@ -1,0 +1,6 @@
+{
+  "name": "MARKENS",
+  "description": "Мобильная версия голосового и игрового мессенджера MARKENS с полной синхронизацией чатов, друзей и живых OTA-обновлений с ПК-версией.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

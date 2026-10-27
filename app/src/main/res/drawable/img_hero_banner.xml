@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="360dp"
+    android:height="180dp"
+    android:viewportWidth="360"
+    android:viewportHeight="180">
+    <!-- Background Canvas -->
+    <path android:pathData="M0,0h360v180h-360z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="360"
+                android:endY="180"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#0D1117" />
+                <item android:offset="0.55" android:color="#161B22" />
+                <item android:offset="1.0" android:color="#1F2430" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Subtle Grid Lines -->
+    <path
+        android:pathData="M0,45 L360,45 M0,90 L360,90 M0,135 L360,135 M60,0 L60,180 M120,0 L120,180 M180,0 L180,180 M240,0 L240,180 M300,0 L300,180"
+        android:strokeWidth="0.6"
+        android:strokeColor="#21262D" />
+    <!-- Desktop .EXE Window Card (Left) -->
+    <path
+        android:fillColor="#161B22"
+        android:strokeColor="#30363D"
+        android:strokeWidth="1.5"
+        android:pathData="M24,32 L152,32 L152,138 L24,138 Z" />
+    <path
+        android:fillColor="#21262D"
+        android:pathData="M24,32 L152,32 L152,48 L24,48 Z" />
+    <!-- Window Dots -->
+    <path android:fillColor="#FF7B72" android:pathData="M34,40 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <path android:fillColor="#D29922" android:pathData="M44,40 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <path android:fillColor="#3FB950" android:pathData="M54,40 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <!-- Desktop Chat Lines -->
+    <path android:fillColor="#58A6FF" android:pathData="M34,60 L98,60 L98,68 L34,68 Z" />
+    <path android:fillColor="#30363D" android:pathData="M34,76 L136,76 L136,84 L34,84 Z" />
+    <path android:fillColor="#3FB950" android:pathData="M34,94 L118,94 L118,102 L34,102 Z" />
+    <path android:fillColor="#A371F7" android:pathData="M34,112 L84,112 L84,120 L34,120 Z" />
+
+    <!-- Glowing Bridge / Git Branch Stream (Center) -->
+    <path
+        android:strokeColor="#58A6FF"
+        android:strokeWidth="3"
+        android:pathData="M152,72 C180,72 184,56 216,56" />
+    <path
+        android:strokeColor="#3FB950"
+        android:strokeWidth="3"
+        android:pathData="M152,98 C182,98 186,112 216,112" />
+    <path android:fillColor="#58A6FF" android:pathData="M184,64 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+    <path android:fillColor="#3FB950" android:pathData="M184,105 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+
+    <!-- Android Mobile Frame (Right) -->
+    <path
+        android:fillColor="#0D1117"
+        android:strokeColor="#58A6FF"
+        android:strokeWidth="2"
+        android:pathData="M216,20 L328,20 L328,160 L216,160 Z" />
+    <path android:fillColor="#1F6FEB" android:pathData="M226,34 L302,34 L302,54 L226,54 Z" />
+    <path android:fillColor="#238636" android:pathData="M242,64 L318,64 L318,86 L242,86 Z" />
+    <path android:fillColor="#21262D" android:pathData="M226,96 L306,96 L306,122 L226,122 Z" />
+    <path android:fillColor="#A371F7" android:pathData="M226,134 L318,134 L318,146 L226,146 Z" />
+</vector>

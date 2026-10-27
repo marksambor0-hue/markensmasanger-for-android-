@@ -1,0 +1,226 @@
+{
+  "entities": {
+    "Channel": {
+      "title": "Channel",
+      "description": "A messenger channel, direct message thread, or GitHub/EXE bridge channel belonging to the user's ported workspace.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner UID matching request.auth.uid"
+        },
+        "name": {
+          "type": "string",
+          "description": "Channel display name (e.g., #general-exe-port)"
+        },
+        "topic": {
+          "type": "string",
+          "description": "Channel topic or description"
+        },
+        "category": {
+          "type": "string",
+          "enum": ["CHANNEL", "DIRECT", "GITHUB_BRIDGE", "EXE_SYNC"],
+          "description": "Category of the channel"
+        },
+        "linkedRepo": {
+          "type": "string",
+          "description": "Linked GitHub repository path (owner/repo)"
+        },
+        "unreadCount": {
+          "type": "integer",
+          "description": "Unread message count"
+        },
+        "isPinned": {
+          "type": "boolean",
+          "description": "Whether the channel is pinned to top"
+        },
+        "lastMessageText": {
+          "type": "string",
+          "description": "Preview of the latest message in the channel"
+        },
+        "lastSenderName": {
+          "type": "string",
+          "description": "Author name of the latest message"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp()) when created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp()) when last updated"
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "topic",
+        "category",
+        "linkedRepo",
+        "unreadCount",
+        "isPinned",
+        "lastMessageText",
+        "lastSenderName",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A chat message, code snippet, GitHub commit card, or desktop .exe packet inside a channel.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner UID matching request.auth.uid"
+        },
+        "channelId": {
+          "type": "string",
+          "description": "Parent channel document ID in /channels/{channelId}"
+        },
+        "senderName": {
+          "type": "string",
+          "description": "Display name of the sender"
+        },
+        "senderHandle": {
+          "type": "string",
+          "description": "Handle of the sender (e.g., @alex_dev, @exe_bridge)"
+        },
+        "text": {
+          "type": "string",
+          "description": "Message text content"
+        },
+        "messageType": {
+          "type": "string",
+          "enum": ["TEXT", "CODE_SNIPPET", "GITHUB_COMMIT", "EXE_PACKET"],
+          "description": "Type of message payload"
+        },
+        "codeLanguage": {
+          "type": "string",
+          "description": "Programming language for CODE_SNIPPET messages"
+        },
+        "codeSnippet": {
+          "type": "string",
+          "description": "Source code block or terminal packet content"
+        },
+        "commitSha": {
+          "type": "string",
+          "description": "Optional short SHA for GITHUB_COMMIT messages"
+        },
+        "isPinned": {
+          "type": "boolean",
+          "description": "Whether message is pinned in the channel"
+        },
+        "reactionsCount": {
+          "type": "integer",
+          "description": "Number of reactions on the message"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp()) when created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp()) when updated"
+        }
+      },
+      "required": [
+        "userId",
+        "channelId",
+        "senderName",
+        "senderHandle",
+        "text",
+        "messageType",
+        "codeLanguage",
+        "codeSnippet",
+        "commitSha",
+        "isPinned",
+        "reactionsCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BridgeProfile": {
+      "title": "BridgeProfile",
+      "description": "User's Desktop .exe to Android Messenger bridge configuration and status profile.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner UID matching request.auth.uid"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User's messenger display name"
+        },
+        "statusText": {
+          "type": "string",
+          "description": "Custom status text shown in messenger"
+        },
+        "presenceState": {
+          "type": "string",
+          "enum": ["ONLINE", "CODING", "AWAY", "DND"],
+          "description": "Current user presence state"
+        },
+        "githubRepo": {
+          "type": "string",
+          "description": "Default GitHub repository synced with the messenger"
+        },
+        "exeBridgeMode": {
+          "type": "string",
+          "enum": ["ACTIVE_SYNC", "MOBILE_STANDALONE", "LOW_LATENCY"],
+          "description": "Desktop .exe port synchronization mode"
+        },
+        "syncedPacketsCount": {
+          "type": "integer",
+          "description": "Total number of packets/commits synced from desktop .exe and GitHub"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp()) when created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp()) when updated"
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "statusText",
+        "presenceState",
+        "githubRepo",
+        "exeBridgeMode",
+        "syncedPacketsCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/channels/{channelId}": {
+      "schema": {
+        "$ref": "#/entities/Channel"
+      },
+      "description": "Stores messenger channels, DMs, and GitHub/EXE bridge rooms scoped to each user."
+    },
+    "/messages/{messageId}": {
+      "schema": {
+        "$ref": "#/entities/Message"
+      },
+      "description": "Stores chat messages, code snippets, GitHub commits, and EXE packets inside channels."
+    },
+    "/bridge_profiles/{userId}": {
+      "schema": {
+        "$ref": "#/entities/BridgeProfile"
+      },
+      "description": "Stores the user's desktop .exe bridge profile and GitHub sync settings."
+    }
+  }
+}

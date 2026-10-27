@@ -1,0 +1,182 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Global Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 1. Channel Validation Blueprint
+    function isValidChannel(data) {
+      return data.keys().hasAll([
+               'userId', 'name', 'topic', 'category', 'linkedRepo',
+               'unreadCount', 'isPinned', 'lastMessageText', 'lastSenderName',
+               'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'name', 'topic', 'category', 'linkedRepo',
+               'unreadCount', 'isPinned', 'lastMessageText', 'lastSenderName',
+               'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == request.auth.uid && isValidId(data.userId) &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 60 &&
+             data.topic is string && data.topic.size() >= 1 && data.topic.size() <= 200 &&
+             data.category is string && data.category in ['CHANNEL', 'DIRECT', 'GITHUB_BRIDGE', 'EXE_SYNC'] &&
+             data.linkedRepo is string && data.linkedRepo.size() <= 120 &&
+             data.unreadCount is int && data.unreadCount >= 0 && data.unreadCount <= 9999 &&
+             data.isPinned is bool &&
+             data.lastMessageText is string && data.lastMessageText.size() >= 1 && data.lastMessageText.size() <= 300 &&
+             data.lastSenderName is string && data.lastSenderName.size() >= 1 && data.lastSenderName.size() <= 80 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /channels/{channelId} {
+      allow get: if isSignedIn() && isValidId(channelId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(channelId) &&
+                       isValidChannel(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(channelId) &&
+                       isValidChannel(incoming()) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         // Action: Update channel metadata, pin status, unread count, or last message preview
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'name', 'topic', 'category', 'linkedRepo',
+                           'unreadCount', 'isPinned', 'lastMessageText', 'lastSenderName', 'updatedAt'
+                         ])
+                       );
+
+      allow delete: if isSignedIn() && isValidId(channelId) && existing().userId == request.auth.uid;
+    }
+
+    // 2. Message Validation Blueprint
+    function isValidMessage(data) {
+      return data.keys().hasAll([
+               'userId', 'channelId', 'senderName', 'senderHandle', 'text',
+               'messageType', 'codeLanguage', 'codeSnippet', 'commitSha',
+               'isPinned', 'reactionsCount', 'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'channelId', 'senderName', 'senderHandle', 'text',
+               'messageType', 'codeLanguage', 'codeSnippet', 'commitSha',
+               'isPinned', 'reactionsCount', 'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == request.auth.uid && isValidId(data.userId) &&
+             isValidId(data.channelId) &&
+             data.senderName is string && data.senderName.size() >= 1 && data.senderName.size() <= 80 &&
+             data.senderHandle is string && data.senderHandle.size() >= 1 && data.senderHandle.size() <= 60 &&
+             data.text is string && data.text.size() >= 1 && data.text.size() <= 4000 &&
+             data.messageType is string && data.messageType in ['TEXT', 'CODE_SNIPPET', 'GITHUB_COMMIT', 'EXE_PACKET'] &&
+             data.codeLanguage is string && data.codeLanguage.size() <= 40 &&
+             data.codeSnippet is string && data.codeSnippet.size() <= 4000 &&
+             data.commitSha is string && data.commitSha.size() <= 60 &&
+             data.isPinned is bool &&
+             data.reactionsCount is int && data.reactionsCount >= 0 && data.reactionsCount <= 10000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /messages/{messageId} {
+      allow get: if isSignedIn() && isValidId(messageId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(messageId) &&
+                       isValidMessage(incoming()) &&
+                       exists(/databases/$(database)/documents/channels/$(incoming().channelId)) &&
+                       get(/databases/$(database)/documents/channels/$(incoming().channelId)).data.userId == request.auth.uid;
+
+      allow update: if isSignedIn() &&
+                       isValidId(messageId) &&
+                       isValidMessage(incoming()) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().channelId == existing().channelId &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         // Action: Pin/unpin, react, or edit message text/snippet
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'text', 'codeLanguage', 'codeSnippet', 'isPinned', 'reactionsCount', 'updatedAt'
+                         ])
+                       );
+
+      allow delete: if isSignedIn() && isValidId(messageId) && existing().userId == request.auth.uid;
+    }
+
+    // 3. BridgeProfile Validation Blueprint
+    function isValidBridgeProfile(data) {
+      return data.keys().hasAll([
+               'userId', 'displayName', 'statusText', 'presenceState',
+               'githubRepo', 'exeBridgeMode', 'syncedPacketsCount',
+               'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'displayName', 'statusText', 'presenceState',
+               'githubRepo', 'exeBridgeMode', 'syncedPacketsCount',
+               'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == request.auth.uid && isValidId(data.userId) &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+             data.statusText is string && data.statusText.size() >= 1 && data.statusText.size() <= 120 &&
+             data.presenceState is string && data.presenceState in ['ONLINE', 'CODING', 'AWAY', 'DND'] &&
+             data.githubRepo is string && data.githubRepo.size() >= 1 && data.githubRepo.size() <= 120 &&
+             data.exeBridgeMode is string && data.exeBridgeMode in ['ACTIVE_SYNC', 'MOBILE_STANDALONE', 'LOW_LATENCY'] &&
+             data.syncedPacketsCount is int && data.syncedPacketsCount >= 0 && data.syncedPacketsCount <= 1000000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /bridge_profiles/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       isValidBridgeProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       isValidBridgeProfile(incoming()) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         // Action: Update profile status, GitHub repo, or EXE sync counter
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'displayName', 'statusText', 'presenceState',
+                           'githubRepo', 'exeBridgeMode', 'syncedPacketsCount', 'updatedAt'
+                         ])
+                       );
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId && existing().userId == request.auth.uid;
+    }
+  }
+}

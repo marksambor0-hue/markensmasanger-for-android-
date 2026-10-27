@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="markens_native_session_v30.xml" />
+        <exclude domain="file" path="ota_updates" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="markens_native_session_v30.xml" />
+        <exclude domain="file" path="ota_updates" />
+    </device-transfer>
+</data-extraction-rules>

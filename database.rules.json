@@ -1,0 +1,147 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "accounts": {
+      ".read": false,
+      "$userId": {
+        ".read": "auth != null && (auth.uid === $userId || auth.token.markensLogin === $userId || auth.token.admin === true)",
+        ".write": "auth != null && (auth.uid === $userId || auth.token.markensLogin === $userId) && (!data.exists() || data.child('passwordHash').val() === newData.child('passwordHash').val() || auth.token.verifiedSession === true)",
+        ".validate": "newData.hasChildren(['name', 'status']) && newData.child('name').isString() && newData.child('name').val().length >= 2 && newData.child('name').val().length <= 32 && (!newData.child('isOwner').exists() || newData.child('isOwner').val() === false || ($userId === 'markens' && (auth.token.admin === true || (data.exists() && data.child('isOwner').val() === true))))",
+        "bio": {
+          ".validate": "newData.isString() && newData.val().length <= 200"
+        },
+        "status": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "badge": {
+          ".validate": "newData.isString() && newData.val().length <= 16"
+        },
+        "avatarUrl": {
+          ".validate": "newData.isString() && newData.val().length <= 250000"
+        },
+        "passwordHash": {
+          ".validate": "newData.isString() && newData.val().length >= 16 && newData.val().length <= 256"
+        },
+        "pbkdf2Hash": {
+          ".validate": "newData.isString() && newData.val().length >= 32 && newData.val().length <= 256"
+        },
+        "pbkdf2Salt": {
+          ".validate": "newData.isString() && newData.val().length >= 16 && newData.val().length <= 128"
+        }
+      }
+    },
+
+    "channels_v22": {
+      "$channelKey": {
+        ".read": "auth != null && (
+          !$channelKey.beginsWith('dm_') && !$channelKey.beginsWith('fav_') ||
+          ($channelKey.beginsWith('fav_') && ($channelKey === 'fav_' + auth.uid || $channelKey === 'fav_' + auth.token.markensLogin)) ||
+          ($channelKey.beginsWith('dm_') && ($channelKey.beginsWith('dm_' + auth.uid + '_') || $channelKey.endsWith('_' + auth.uid) || $channelKey.beginsWith('dm_' + auth.token.markensLogin + '_') || $channelKey.endsWith('_' + auth.token.markensLogin)))
+        )",
+        "$messageId": {
+          ".write": "auth != null && (
+            !$channelKey.beginsWith('dm_') && !$channelKey.beginsWith('fav_') ||
+            ($channelKey.beginsWith('fav_') && ($channelKey === 'fav_' + auth.uid || $channelKey === 'fav_' + auth.token.markensLogin)) ||
+            ($channelKey.beginsWith('dm_') && ($channelKey.beginsWith('dm_' + auth.uid + '_') || $channelKey.endsWith('_' + auth.uid) || $channelKey.beginsWith('dm_' + auth.token.markensLogin + '_') || $channelKey.endsWith('_' + auth.token.markensLogin)))
+          ) && (
+            (!data.exists() && (newData.child('sender').val() === auth.uid || newData.child('sender').val() === auth.token.markensLogin)) ||
+            (data.exists() && newData.exists() && (
+              (data.child('sender').val() === auth.uid || data.child('sender').val() === auth.token.markensLogin) &&
+              newData.child('sender').val() === data.child('sender').val() &&
+              newData.child('ts').val() === data.child('ts').val()
+            )) ||
+            (data.exists() && newData.exists() && newData.child('text').val() === data.child('text').val() && newData.child('sender').val() === data.child('sender').val()) ||
+            (data.exists() && !newData.exists() && (data.child('sender').val() === auth.uid || data.child('sender').val() === auth.token.markensLogin || auth.token.admin === true))
+          )",
+          ".validate": "!newData.exists() || (newData.hasChildren(['id', 'sender', 'ts']) && newData.child('sender').isString() && newData.child('sender').val().length >= 2 && newData.child('sender').val().length <= 32 && newData.child('ts').isNumber() && (!newData.child('text').exists() || (newData.child('text').isString() && newData.child('text').val().length <= 2000)) && (!newData.child('mediaUrl').exists() || (newData.child('mediaUrl').isString() && newData.child('mediaUrl').val().length <= 600000)))"
+        }
+      }
+    },
+
+    "friends_v22": {
+      "$userId": {
+        ".read": "auth != null && (auth.uid === $userId || auth.token.markensLogin === $userId)",
+        "$friendId": {
+          ".write": "auth != null && (auth.uid === $userId || auth.token.markensLogin === $userId) && $userId !== $friendId",
+          ".validate": "!newData.exists() || (newData.hasChildren(['name', 'ts']) && newData.child('name').isString() && newData.child('name').val().length <= 32)"
+        }
+      }
+    },
+
+    "friend_requests_v24": {
+      "$targetUserId": {
+        ".read": "auth != null && (auth.uid === $targetUserId || auth.token.markensLogin === $targetUserId)",
+        "$fromUserId": {
+          ".read": "auth != null && (auth.uid === $targetUserId || auth.token.markensLogin === $targetUserId || auth.uid === $fromUserId || auth.token.markensLogin === $fromUserId)",
+          ".write": "auth != null && (
+            (newData.exists() && (auth.uid === $fromUserId || auth.token.markensLogin === $fromUserId) && newData.child('from').val() === $fromUserId && newData.child('to').val() === $targetUserId && $fromUserId !== $targetUserId) ||
+            (!newData.exists() && (auth.uid === $targetUserId || auth.token.markensLogin === $targetUserId || auth.uid === $fromUserId || auth.token.markensLogin === $fromUserId))
+          )",
+          ".validate": "!newData.exists() || (newData.hasChildren(['from', 'to', 'ts']) && newData.child('from').isString() && newData.child('to').isString() && newData.child('ts').isNumber())"
+        }
+      }
+    },
+
+    "presence_v24": {
+      ".read": "auth != null",
+      "$userId": {
+        ".write": "auth != null && (auth.uid === $userId || auth.token.markensLogin === $userId)",
+        ".validate": "newData.hasChildren(['user', 'status', 'lastSeen']) && newData.child('user').val() === $userId && newData.child('status').isString() && newData.child('status').val().length <= 40 && newData.child('lastSeen').isNumber() && (!newData.child('avatarUrl').exists() || (newData.child('avatarUrl').isString() && newData.child('avatarUrl').val().length <= 250000))"
+      }
+    },
+
+    "servers_v25": {
+      ".read": "auth != null",
+      "$serverId": {
+        ".write": "auth != null && (
+          ($serverId === 'vortex' && (auth.token.admin === true || auth.token.markensLogin === 'markens')) ||
+          ($serverId !== 'vortex' && (!data.exists() && (newData.child('owner').val() === auth.uid || newData.child('owner').val() === auth.token.markensLogin) || (data.exists() && (data.child('owner').val() === auth.uid || data.child('owner').val() === auth.token.markensLogin))))
+        )",
+        ".validate": "newData.hasChildren(['id', 'name', 'owner']) && newData.child('name').isString() && newData.child('name').val().length >= 1 && newData.child('name').val().length <= 40"
+      }
+    },
+
+    "feedback_board": {
+      ".read": "auth != null",
+      "$itemId": {
+        ".write": "auth != null && (
+          (!data.exists() && (newData.child('author').val() === auth.uid || newData.child('author').val() === auth.token.markensLogin) && (!newData.child('isOwner').exists() || newData.child('isOwner').val() === false || auth.token.admin === true)) ||
+          (data.exists() && newData.exists() && (
+            auth.token.admin === true ||
+            ((data.child('author').val() === auth.uid || data.child('author').val() === auth.token.markensLogin) && newData.child('status').val() === data.child('status').val() && newData.child('creatorReply').val() === data.child('creatorReply').val()) ||
+            (newData.child('text').val() === data.child('text').val() && newData.child('author').val() === data.child('author').val() && newData.child('status').val() === data.child('status').val() && newData.child('creatorReply').val() === data.child('creatorReply').val())
+          )) ||
+          (data.exists() && !newData.exists() && (auth.token.admin === true || data.child('author').val() === auth.uid || data.child('author').val() === auth.token.markensLogin))
+        )",
+        ".validate": "!newData.exists() || (newData.hasChildren(['id', 'author', 'text', 'ts']) && newData.child('text').isString() && newData.child('text').val().length >= 1 && newData.child('text').val().length <= 600)"
+      }
+    },
+
+    "calls_v25": {
+      "$callId": {
+        ".read": "auth != null && (data.child('caller').val() === auth.uid || data.child('callee').val() === auth.uid || data.child('caller').val() === auth.token.markensLogin || data.child('callee').val() === auth.token.markensLogin)",
+        ".write": "auth != null && (
+          (!data.exists() && (newData.child('caller').val() === auth.uid || newData.child('caller').val() === auth.token.markensLogin)) ||
+          (data.exists() && (data.child('caller').val() === auth.uid || data.child('callee').val() === auth.uid || data.child('caller').val() === auth.token.markensLogin || data.child('callee').val() === auth.token.markensLogin))
+        )",
+        ".validate": "!newData.exists() || (newData.hasChildren(['callId', 'caller', 'callee', 'status', 'ts']) && newData.child('caller').isString() && newData.child('callee').isString() && newData.child('caller').val() !== newData.child('callee').val())"
+      }
+    },
+
+    "call_inbox": {
+      "$userName": {
+        ".read": "auth != null && (auth.uid === $userName || auth.token.markensLogin === $userName)",
+        ".write": "auth != null",
+        ".validate": "!newData.exists() || (newData.hasChildren(['callId', 'caller', 'callee', 'status', 'ts']) && newData.child('callee').val() === $userName)"
+      }
+    },
+
+    "ota_update": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.admin === true",
+      ".validate": "newData.hasChildren(['version', 'buildTs', 'changelog', 'signature']) && newData.child('signature').isString() && newData.child('signature').val().length >= 16 && (!newData.child('apkUrl').exists() || (newData.child('apkUrl').isString() && newData.child('apkUrl').val().beginsWith('https://')))"
+    }
+  }
+}

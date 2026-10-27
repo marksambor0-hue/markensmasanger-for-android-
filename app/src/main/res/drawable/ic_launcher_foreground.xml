@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="192"
+    android:viewportHeight="192">
+    <!-- Official MARKENS speech bubble + emerald M logo scaled to Adaptive Icon safe zone -->
+    <group
+        android:scaleX="0.68"
+        android:scaleY="0.68"
+        android:translateX="30.72"
+        android:translateY="30.72">
+        <path
+            android:pathData="M38,56C38,44 48,34 60,34H132C144,34 154,44 154,56V114C154,126 144,136 132,136H86L54,162V136H60C48,136 38,126 38,114V56Z"
+            android:strokeWidth="14"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000" />
+        <path
+            android:pathData="M68,108V68L96,94L124,68V108"
+            android:strokeWidth="14"
+            android:strokeColor="#10B981"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:fillColor="#00000000" />
+    </group>
+</vector>
